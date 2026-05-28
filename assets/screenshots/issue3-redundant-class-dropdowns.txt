@@ -1,0 +1,34 @@
+SCREENSHOT: Issue 3 - Redundant Class Selection Dropdowns
+========================================================
+
+File: issue3-redundant-class-dropdowns-screenshot.jpg (to be added)
+
+Description:
+The IRCTC "BOOK TICKET" form on the homepage (irctc.co.in) showing:
+- Top section (above):
+  - From field with train icon
+  - To field with location icon  
+  - DD/MM/YYYY date field showing 28/05/2026
+- Middle section (scrolled view):
+  - "All Classes" dropdown (with seat/grid icon) - showing "All Classes" as selected
+  - "GENERAL" dropdown (with grid/seat icon) - showing "GENERAL" as selected
+- Checkbox options:
+  - ☐ Person With Disability Concession
+  - ☐ Flexible With Date
+  - ☐ Railway Pass Concession
+- Orange "Search Trains" button
+
+Captured: May 28, 2026 at https://www.irctc.co.in/ (scrolled to show lower form)
+
+Observations:
+- Two separate class-related dropdowns present
+- Both are visible simultaneously on the same form
+- "All Classes" suggests a catch-all / unfiltered option
+- "GENERAL" is ambiguous - could mean:
+  a) General/3rd Class (an actual Indian Railways class)
+  b) A generic/unspecified category
+  c) General seating (non-specific)
+- No clear label explaining the relationship between these two fields
+- Users must guess which to select or whether to select both
+- Unclear information architecture - redundant and confusing
+- Violates principle of "one control per action"
