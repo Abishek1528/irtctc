@@ -1,0 +1,27 @@
+SCREENSHOT: Issue 2 - Confusing Auto-Complete Initial State
+===========================================================
+
+File: issue2-autocomplete-zero-results-screenshot.jpg (to be added)
+
+Description:
+The IRCTC Reservation Chart page (irctc.co.in/online-charts) showing:
+- Header: "RESERVATION CHART" with IRCTC logo and Indian Railway logo
+- Main form titled "Journey Details" with:
+  1. "Train Name/Number*" field (with a search/train icon):
+     - The dropdown shows: "0 results available. Select is focused ,type to refine list, press Down to open the menu,"
+     - This message appears BEFORE the user has typed anything
+  2. "Journey Date*" field with calendar icon - showing 28-05-2026
+  3. "Boarding Station*" field with empty input box
+  4. Blue "Get Train Chart" button
+
+Captured: May 28, 2026 at https://www.irctc.co.in/online-charts/
+
+Observations:
+- The "0 results available" message displays on initial page load
+- No user input has been made yet
+- The message is confusing - suggests either:
+  a) The search doesn't work
+  b) No trains exist in the database
+  c) The user must login first
+- The help text "Select is focused, type to refine list" is partially visible but formatted poorly
+- Creates perception that the field is broken or non-functional

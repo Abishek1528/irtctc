@@ -1,0 +1,26 @@
+SCREENSHOT: Issue 1 - Forced Login Modal Blocks Guest Train Search
+================================================================
+
+File: issue1-login-modal-block-screenshot.jpg (to be added)
+
+Description:
+The IRCTC homepage (irctc.co.in) showing the "BOOK TICKET" form with:
+- Left side: White form card with fields:
+  - "From" station search field (with location icon) - user typed "Delhi"
+  - "To" station search field (with location icon) - empty
+  - "DD/MM/YYYY" date field - showing 28/05/2026
+- Center: Overlay blocking the form - a modal titled "LOGIN" with:
+  - User Name input field (empty)
+  - Password input field (with eye icon to toggle visibility)
+  - "FORGOT ACCOUNT DETAILS?" link
+  - Checkbox: "Visually impaired users may select this option to receive OTP instead of CAPTCHA"
+  - Orange "SIGN IN" button
+- Right side: Train/railway background image with "RAILWAY" text
+
+Captured: May 28, 2026 at https://www.irctc.co.in/
+
+Observations:
+- The modal appears immediately after typing in the From field
+- No option to dismiss and continue browsing
+- Guest users cannot explore train availability without logging in first
+- The modal is modal (blocks background interaction)
