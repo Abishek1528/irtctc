@@ -30,6 +30,12 @@ When a user starts a Tatkal booking near release time, they see a clear “joini
 
 *Compared to Part A:* Steps 5–7 replace the silent timeout/spinner with explicit queue enrollment, position, and categorized outcomes.
 
+### Wireframe
+
+![Tatkal queue screen wireframe](../assets/wireframes/tatkal-queue-screen.png)
+
+*Caption: Proposed Tatkal virtual queue screen — before/after comparison (mobile), queue position counter, progress bar, countdown, cancel control, and loading/success/error/empty states.*
+
 ### Technical Implementation Plan
 
 **System components affected:**
@@ -103,6 +109,12 @@ Filters always change what the user sees: checking “Sleeper” shows only slee
 
 *Compared to Part A:* Steps 3–6 become deterministic—filter application triggers one refresh path; back navigation restores URL/session state instead of UI/result mismatch.
 
+### Wireframe
+
+![Search filters wireframe](../assets/wireframes/search-filters-results.png)
+
+*Caption: Proposed search results with filter chip row, filtered count header, Refine Results panel — includes loading skeleton, empty “no match”, and error banner states vs Part A mismatch.*
+
 ### Technical Implementation Plan
 
 **System components affected:**
@@ -168,6 +180,12 @@ When the user taps a berth, it stays highlighted and a short “Held for 10 minu
 7. On successful payment, hold converts to confirmed allocation; on abandon, hold auto-releases after TTL.
 
 *Compared to Part A:* Steps 4–5 gain server-backed hold and visible confirmation on every subsequent screen.
+
+### Wireframe
+
+![Seat map berth hold wireframe](../assets/wireframes/seat-map-berth-hold.png)
+
+*Caption: Proposed seat map with berth hold banner and passenger-details confirmation — tap berth to hold, Continue disabled until hold succeeds; loading, taken, and expired states.*
 
 ### Technical Implementation Plan
 
@@ -237,6 +255,12 @@ Guests can search stations, dates, and classes and view train lists and fares wi
 
 *Compared to Part A:* Steps 4–5 no longer trigger login on typing; login moves to explicit booking intent.
 
+### Wireframe
+
+![Guest search wireframe](../assets/wireframes/guest-search-no-modal.png)
+
+*Caption: Proposed guest homepage and results — station autocomplete without login modal; Book triggers login; browse banner; loading and policy-fallback error states.*
+
 ### Technical Implementation Plan
 
 **System components affected:**
@@ -304,6 +328,12 @@ The train field looks like a normal search box: placeholder “Enter train numbe
 
 *Compared to Part A:* Step 4 on load is eliminated; empty-state copy only after meaningful search input.
 
+### Wireframe
+
+![Charts autocomplete wireframe](../assets/wireframes/charts-train-autocomplete.png)
+
+*Caption: Proposed Reservation Charts train field — placeholder on load (no “0 results”), typeahead after 2+ chars; Searching, no match, and manual-entry error states.*
+
 ### Technical Implementation Plan
 
 **System components affected:**
@@ -366,6 +396,12 @@ One clearly labeled control: **Travel class** with options such as All Classes, 
 7. User with disability or pass concessions uses separate labeled checkboxes (unchanged), not a second class dropdown.
 
 *Compared to Part A:* Steps 3–7 replace dual dropdowns with one control and consistent labeling.
+
+### Wireframe
+
+![Travel class selector wireframe](../assets/wireframes/travel-class-single-dropdown.png)
+
+*Caption: Proposed single Travel class dropdown with helper text — removes redundant GENERAL field; before/after comparison and class-unavailable error state.*
 
 ### Technical Implementation Plan
 
