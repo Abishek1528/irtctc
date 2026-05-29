@@ -56,6 +56,17 @@ When a user starts a Tatkal booking near release time, they see a clear “joini
 - `POST /api/v1/tatkal/queue/{queue_token}/process` — internal/worker: run hold when dequeued
 - Modify existing availability/hold endpoints to accept `queue_token` and reject duplicate direct calls during peak window
 
+**Phased rollout (peer review):**
+- **Phase 0 — Shadow mode (2 weeks):** Enqueue and log positions server-side; user still sees legacy spinner but ops validate FIFO fairness and dequeue rates. No user-facing promise yet.
+- **Phase 1 — Position-only UI:** Ship wireframe queue screen (position + progress) without alternate-train suggestions or AI ETA card.
+- **Phase 2 — Full outcomes + optional AI:** Categorized outcome screens and [Tatkal Queue Intelligence](./AI-FEATURE.md) behind feature flag `tatkal_smart_estimate_enabled`.
+- All phases gated by `tatkal_virtual_queue_enabled` per route cluster; instant rollback via flag without redeploy.
+
+**Anti-abuse (peer review):**
+- Require CAPTCHA or re-auth challenge on `enroll` when IP &gt; 3 enrollments per window or device fingerprint collision detected
+- Reject second `queue_token` for same `user_id` + `window_id` if existing entry is `waiting` (prevents multi-tab queue hoarding)
+- Idempotency-Key header on enroll to dedupe double-tap at 10:00:00
+
 **Frontend changes:**
 - `TatkalQueueScreen` component: countdown, position, progress, cancel
 - WebSocket or short-polling hook for queue status
@@ -69,13 +80,19 @@ When a user starts a Tatkal booking near release time, they see a clear “joini
 
 ### Success Metrics
 
-- Tatkal booking attempts with a visible queue/status UI: from ~0% (Part A) to **≥95%** of enrollments during release window
+- Tatkal booking attempts with a visible queue/status UI: from ~0% (Part A) to **≥95%** of enrollments during release window (Phase 1+)
 - Silent failures (timeout with no message): reduce by **≥80%** within 30 days of launch
 - User-reported “unclear outcome” support tickets for Tatkal window: reduce by **≥50%** quarter-over-quarter
+- **PNR issuance rate** during 10:00–10:15 window: no regression vs pre-queue baseline (peer review guardrail—not just better UX)
+- **p95 actual wait time** vs displayed ETA band: within **±60 seconds** once AI/rule estimates ship (Phase 2)
+- Queue abandonment rate (enrolled but left before dequeue): track baseline in shadow mode; target **≤15%** reduction after Phase 1
 
 ### Edge Cases and Constraints
 
 - Queue token must bind to session, train, class, and passenger count to prevent abuse; one active Tatkal queue per user per window
+- **Multiple Tatkal windows (peer review):** AC Tatkal opens at 11:00 AM on many routes—`window_id` must include `{date, quota_type, release_time}` so 10:00 and 11:00 queues do not collide; UI shows correct countdown label per quota
+- **Multi-tab / multi-device (peer review):** Second enroll attempt returns existing `queue_token` with message “You’re already in queue on another tab” instead of a new position
+- **Railway API unavailable during dequeue (peer review):** Show “Railway systems busy — holding your place” and retry dequeue with exponential backoff; do not drop queue position for upstream 5xx within 90s
 - Railway APIs may still return quota exhausted—surface honestly, not as a system error
 - Payment gateway timeouts during peak: hold queue slot briefly, show “payment pending” with retry window
 - Clock skew: server authoritative time for 10:00 release; client countdown is approximate
@@ -278,25 +295,34 @@ Guests can search stations, dates, and classes and view train lists and fares wi
 - Guard `POST` booking, hold, and payment endpoints with auth; remove auth trigger from station autocomplete routes
 - `POST /api/v1/guest/search-session` — store context; merge to user session on login
 
+**Security and compliance (peer review):**
+- WAF rule: max **30** anonymous search requests per IP per hour; stricter cap on autocomplete (**60** req/hr)
+- Trigger **CAPTCHA** on guest flow after 10 searches in 24h from same device fingerprint (peer concern: scraping)
+- Legal/compliance sign-off required on which fare fields are displayable to guests vs “Login to view” (document in release checklist)
+- `guest_search_sessions` store no PII—only station codes, date, class enum; TTL **24h**
+
 **Frontend changes:**
 - Remove or narrow login modal trigger on `From`/`To` input events
 - `LoginRequiredDialog` only on **Book** / **Waitlist** / **Favorite route**
 - Banner component on search results for guests
 - Post-login redirect restores `guest_search_session`
+- **Stale context banner (peer review):** If merge happens &gt;15 min after guest search, show “Availability may have changed — refreshing results” before payment step
 
 **Third-party services (if any):**
-- None
+- None (WAF/CDN existing stack)
 
 ### Success Metrics
 
 - Guest users completing station autocomplete without modal: from **0%** to **100%**
-- Search-to-login conversion rate: measure increase in registrations from browse-first funnel
+- **Guest → registered conversion** within 7 days of first guest search: establish baseline week 1; target **+10% relative** lift by day 90 (peer review: primary business metric)
 - Bounce rate on homepage for logged-out users: reduce by **≥20%** in 90 days
+- **Anonymous API abuse guardrail:** blocked/scraping IPs &lt; **0.5%** of guest traffic; alert if CAPTCHA challenge rate &gt; **8%** (signals bot pressure or bad limits)
 
 ### Edge Cases and Constraints
 
 - IRCTC policy may restrict some fare types or quotas to logged-in users only—show “Login to view” for restricted fields, not block entire search
-- Rate-limit anonymous search to prevent scraping
+- **Train sells out during login (peer review):** After merge, re-run availability check; if zero berths, show “This train filled up while you signed in” with link to same-route alternatives—not a generic error
+- Rate-limit anonymous search to prevent scraping (see WAF limits above)
 - PNR and personal data never exposed without auth
 - Graceful degradation: if guest search API disabled by policy, show message “Sign in to search trains” instead of broken modal on first keystroke
 
@@ -438,6 +464,33 @@ One clearly labeled control: **Travel class** with options such as All Classes, 
 - Regional language support: translate labels, keep API codes stable
 - Backward compatibility: accept old query params during transition, map to single field
 - Graceful degradation: if new component fails, show single native `<select>` with same options—not two dropdowns
+
+---
+
+## Peer Review Notes (Step 6)
+
+**Presented specs:** Feature Spec 1 (Tatkal queue) and Feature Spec 4 (Guest browse without login modal).  
+**Reviewers:** Peer group session — 28 May 2026 (simulated walkthrough: problem → solution → wireframe → matrix placement).
+
+### Challenges and questions captured
+
+| Spec | Question / challenge | Resolution |
+|------|----------------------|------------|
+| Tatkal | “Isn’t this just cosmetic if Railway API still fails?” | Added dequeue retry + honest “Railway systems busy” state; PNR rate guardrail metric |
+| Tatkal | “What about 11 AM AC Tatkal?” | Added `window_id` per release time in edge cases |
+| Tatkal | “Bots will game the queue” | CAPTCHA on enroll, one queue per user/window, Idempotency-Key |
+| Tatkal | “Ship everything at once?” | Phased rollout: shadow → position UI → full outcomes + AI |
+| Tatkal | Matrix: why last in sprint if Impact 5? | Confirmed High/High; sequence is dependency/risk, not low priority |
+| Guest | “Guest search = scraping risk” | WAF limits, CAPTCHA threshold, abuse guardrail metric |
+| Guest | “Can guests legally see fares?” | Compliance checklist before launch; field-level “Login to view” |
+| Guest | “Train sells out while logging in” | Stale-context banner + post-login availability re-check |
+| Guest | “Low effort underestimates security review” | Matrix effort 2→3; still High Impact / Low Effort |
+
+### Specs updated from this session
+
+- **Spec 1:** Phased rollout, anti-abuse, multi-window and multi-tab edge cases, Railway 5xx hold behavior, refined metrics  
+- **Spec 4:** Security/compliance block, sell-out-during-login flow, conversion and abuse metrics  
+- **MATRIX.md:** Guest login effort score and sprint note updated  
 
 ---
 
